@@ -12,18 +12,24 @@ amqp.connect("amqp://localhost", function (error0, connection) {
     const queue = "test";
 
     channel.assertQueue(queue, {
-      durable: false,
+      durable: true,
     });
 
+    channel.prefetch(1);
     console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-
     channel.consume(
       queue,
-      function (msg) {
-        console.log(" [x] Received %s", msg.content.toString());
+      function (message) {
+        const seconds = message.content.toString().split(".").length - 1;
+
+        console.log(" [x] Received %s", message.content.toString());
+        setTimeout(function () {
+          console.log(" [x] Done");
+          channel.ack(message);
+        }, seconds * 1000);
       },
       {
-        noAck: true,
+        noAck: false,
       }
     );
   });
